@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — FreshFade Studio{% endblock %}
+
+{% block content %}
+<div class="dashboard-page">
+    <div class="dash-header">
+        <h1>Hey, {{ user.first_name }} 👋</h1>
+        <p>Manage your appointments and keep your look fresh</p>
+    </div>
+
+    <div style="margin-bottom:2rem;">
+        <a href="{{ url_for('book') }}" class="btn btn-gold">✂ Book New Appointment</a>
+    </div>
+
+    <!-- UPCOMING -->
+    <div class="dash-section">
+        <h3>📅 Upcoming Appointments</h3>
+        {% if upcoming %}
+        <div class="appt-list">
+            {% for appt in upcoming %}
+            <div class="appt-card">
+                <div class="appt-info">
+                    <h4>{{ appt.hairstyle_name }}</h4>
+                    <p>{{ appt.appointment_date.strftime('%A, %d %B %Y') }}
+                       at {{ appt.appointment_time.strftime('%H:%M') }}</p>
+                    <p>Payment: {{ appt.payment_method | upper }}
+                       {% if appt.payment_provider %} ({{ appt.payment_provider }}){% endif %}
+                       — {{ appt.payment_status | capitalize }}</p>
+                </div>
+                <div class="appt-meta">
+                    <span class="appt-price">R{{ "%.0f" | format(appt.price) }}</span>
+                    <span class="appt-badge {{ appt.status }}">{{ appt.status }}</span>
+                    {% if appt.status == 'confirmed' %}
+                    <form method="POST" action="{{ url_for('cancel_appointment', appt_id=appt.id) }}"
+                          onsubmit="return confirm('Cancel this appointment?');">
+                        <button type="submit" class="btn btn-danger btn-sm">Cancel</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">No upcoming appointments. Time to book a fresh cut!</div>
+        {% endif %}
+    </div>
+
+    <!-- PAST -->
+    <div class="dash-section">
+        <h3>🕐 Past Appointments</h3>
+        {% if past %}
+        <div class="appt-list">
+            {% for appt in past %}
+            <div class="appt-card" style="opacity:0.7;">
+                <div class="appt-info">
+                    <h4>{{ appt.hairstyle_name }}</h4>
+                    <p>{{ appt.appointment_date.strftime('%A, %d %B %Y') }}
+                       at {{ appt.appointment_time.strftime('%H:%M') }}</p>
+                    {% if appt.review_rating %}
+                    <p style="color:var(--gold);">Your rating: {{ appt.review_rating }}/10 ⭐</p>
+                    {% endif %}
+                </div>
+                <div class="appt-meta">
+                    <span class="appt-price">R{{ "%.0f" | format(appt.price) }}</span>
+                    <span class="appt-badge {{ appt.status }}">{{ appt.status }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">No past appointments yet.</div>
+        {% endif %}
+    </div>
+
+    <!-- PROFILE -->
+    <div class="dash-section">
+        <h3>👤 Your Profile</h3>
+        <div class="appt-card">
+            <div class="appt-info">
+                <h4>{{ user.first_name }} {{ user.last_name }}</h4>
+                <p>{{ user.email }}</p>
+                <p>{{ user.phone }}</p>
+                {% if user.physical_address %}
+                <p>{{ user.street_number }} {{ user.physical_address }}</p>
+                {% endif %}
+                {% if user.postal_code %}
+                <p>Postal code: {{ user.postal_code }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

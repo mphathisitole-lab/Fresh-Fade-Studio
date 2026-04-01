@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Services — FreshFade Studio{% endblock %}
+
+{% block content %}
+<div class="dashboard-page" style="max-width:1200px;">
+    <div class="section-header" style="margin-top:1rem;">
+        <h2>Our Services</h2>
+        <p>From clean fades to braided masterpieces — pick your style and book</p>
+        <div class="divider"></div>
+    </div>
+
+    <div class="services-grid">
+        {% for style in hairstyles %}
+        <div class="service-card">
+            <h3>{{ style.name }}</h3>
+            <div class="price">R{{ style.price }}</div>
+            <div class="duration">45 min session</div>
+            <a href="{{ url_for('service_book', style_id=style.id) }}"
+               class="btn btn-gold btn-sm" style="margin-top:1rem;width:100%;">
+                Book This Style
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
