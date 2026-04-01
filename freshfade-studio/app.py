@@ -240,7 +240,7 @@ class BlockedSlot(db.Model):
 # Admin credentials
 # ---------------------------------------------------------------------------
 ADMIN_USERNAME = "admin"
-ADMIN_PASSWORD = "freshfade2024"
+ADMIN_PASSWORD = "**********"
 
 
 # ---------------------------------------------------------------------------
