@@ -1,2 +1,2 @@
-# Fresh-Fade-Studio
+# Aura-Studio.Co
 Hair Cut Salon
