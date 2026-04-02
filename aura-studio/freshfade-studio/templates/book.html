@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% block title %}Book Appointment — Aura Studio.co{% endblock %}
+
+{% block content %}
+<div class="dashboard-page">
+    <div class="dash-header">
+        <h1>Book Your Appointment</h1>
+        <p>Pick your style, choose a date & time, select how to pay</p>
+    </div>
+
+    <form method="POST" action="{{ url_for('book') }}" id="booking-form"
+          onsubmit="return validateBookingForm();">
+        <input type="hidden" name="date" id="selected-date" value="">
+        <input type="hidden" name="time" id="selected-time" value="">
+
+        <!-- STEP 1: Style -->
+        <div class="dash-section">
+            <h3>1. Choose Your Style</h3>
+            <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;">
+                <div class="form-group" style="flex:1;min-width:280px;margin-bottom:0;">
+                    <select name="hairstyle" id="hairstyle-select" onchange="onHairstyleChange(this)" required>
+                        <option value="">— Select a hairstyle —</option>
+                        {% for style in hairstyles %}
+                        <option value="{{ style.id }}" data-price="{{ style.price }}"
+                                {{ 'selected' if style.id == preselected_style else '' }}>
+                            {{ style.name }} — R{{ style.price }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <span id="style-price-display"
+                      style="font-family:'Bebas Neue',cursive;font-size:2rem;color:var(--gold);"></span>
+            </div>
+        </div>
+
+        <!-- STEP 2: Calendar + Slots -->
+        <div class="dash-section">
+            <h3>2. Pick a Date & Time</h3>
+            <p id="calendar-work-hours"
+               style="color:var(--text-muted);font-size:0.85rem;margin-bottom:1rem;"></p>
+            <div class="booking-layout">
+                <div class="calendar-widget" id="booking-calendar">
+                    <div class="calendar-nav">
+                        <button type="button" id="prev-month">&larr;</button>
+                        <h3 id="calendar-month-label">Loading…</h3>
+                        <button type="button" id="next-month">&rarr;</button>
+                    </div>
+                    <div class="calendar-info">
+                        <span><span class="dot available"></span> Open</span>
+                        <span><span class="dot partial"></span> Filling up</span>
+                        <span><span class="dot full"></span> Fully booked</span>
+                        <span><span class="dot closed"></span> Closed / Blocked</span>
+                    </div>
+                    <div class="calendar-grid" id="calendar-days"></div>
+                </div>
+                <div class="slots-panel">
+                    <h3>Available Time Slots</h3>
+                    <div id="slots-container">
+                        <p style="color:var(--text-muted);text-align:center;padding:2rem;">
+                            Select a date to see available slots.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 3: Payment Method -->
+        <div class="dash-section">
+            <h3>3. How Would You Like to Pay?</h3>
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:0.8rem;max-width:500px;">
+
+                <!-- PayFast (Card + EFT + Capitec Pay + SnapScan + Zapper) -->
+                <div class="payment-option">
+                    <input type="radio" name="payment_method" id="pay-payfast" value="payfast">
+                    <label for="pay-payfast">
+                        <span class="pay-icon">💳</span>
+                        <span class="pay-name">Pay Online</span>
+                        <span style="font-size:0.65rem;color:var(--text-muted);display:block;margin-top:0.2rem;">
+                            Card · EFT · Capitec Pay · SnapScan · Zapper
+                        </span>
+                    </label>
+                </div>
+
+                <!-- Cash -->
+                <div class="payment-option">
+                    <input type="radio" name="payment_method" id="pay-cash" value="cash" checked>
+                    <label for="pay-cash">
+                        <span class="pay-icon">💵</span>
+                        <span class="pay-name">Cash</span>
+                        <span style="font-size:0.65rem;color:var(--text-muted);display:block;margin-top:0.2rem;">
+                            Pay on arrival
+                        </span>
+                    </label>
+                </div>
+            </div>
+
+            <p style="font-size:0.8rem;color:var(--text-muted);margin-top:1rem;">
+                Online payments via PayFast must be completed before your booking is confirmed.
+                Cash is settled on arrival.
+            </p>
+        </div>
+
+        <!-- BOOKING SUMMARY -->
+        <div class="dash-section" id="booking-summary" style="display:none;">
+            <h3>📋 Booking Summary</h3>
+            <div class="appt-card">
+                <div class="appt-info">
+                    <p><strong>Style:</strong> <span id="summary-style">—</span></p>
+                    <p><strong>Date:</strong> <span id="summary-date">—</span></p>
+                    <p><strong>Time:</strong> <span id="summary-time">—</span></p>
+                    <p><strong>Payment:</strong> <span id="summary-payment">Cash</span></p>
+                </div>
+                <div class="appt-meta">
+                    <span class="appt-price" id="summary-price">—</span>
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align:center;margin-top:2rem;">
+            <button type="submit" class="btn btn-gold" style="padding:1rem 3rem;font-size:1rem;">
+                ✂ Confirm & Pay
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const paymentLabels = {
+    payfast: "Pay Online (Card / EFT / Capitec Pay / SnapScan / Zapper)",
+    cash: "Cash (Pay on Arrival)"
+};
+
+function validateBookingForm() {
+    const style = document.getElementById("hairstyle-select")?.value;
+    const dateVal = document.getElementById("selected-date")?.value;
+    const timeVal = document.getElementById("selected-time")?.value;
+    const payment = document.querySelector('input[name="payment_method"]:checked');
+    if (!style) { alert("Please select a hairstyle."); return false; }
+    if (!dateVal) { alert("Please select a date from the calendar."); return false; }
+    if (!timeVal) { alert("Please select a time slot."); return false; }
+    if (!payment) { alert("Please choose a payment method."); return false; }
+    return true;
+}
+
+// Override updateBookingSummary to include payment label
+const _origUpdateSummary = window.updateBookingSummary;
+window.updateBookingSummary = function() {
+    const summary = document.getElementById("booking-summary");
+    if (!summary) return;
+    const sel = document.getElementById("hairstyle-select");
+    const styleName = sel?.options[sel.selectedIndex]?.text || "—";
+    const price = sel?.options[sel.selectedIndex]?.dataset.price || "—";
+    const dateFormatted = selectedDate
+        ? new Date(selectedDate+"T00:00:00").toLocaleDateString("en-ZA",{weekday:"long",year:"numeric",month:"long",day:"numeric"})
+        : "—";
+    const payRadio = document.querySelector('input[name="payment_method"]:checked');
+    const payLabel = payRadio ? (paymentLabels[payRadio.value] || payRadio.value) : "—";
+
+    document.getElementById("summary-style").textContent = styleName;
+    document.getElementById("summary-date").textContent = dateFormatted;
+    document.getElementById("summary-time").textContent = selectedTime || "—";
+    document.getElementById("summary-price").textContent = price !== "—" ? `R${price}` : "—";
+    document.getElementById("summary-payment").textContent = payLabel;
+    summary.style.display = "block";
+};
+
+// Update summary when payment method changes
+document.querySelectorAll('input[name="payment_method"]').forEach(r => {
+    r.addEventListener("change", () => { if(window.updateBookingSummary) window.updateBookingSummary(); });
+});
+
+// Trigger pre-selected style
+document.addEventListener("DOMContentLoaded", () => {
+    const sel = document.getElementById("hairstyle-select");
+    if (sel && sel.value) onHairstyleChange(sel);
+});
+</script>
+{% endblock %}

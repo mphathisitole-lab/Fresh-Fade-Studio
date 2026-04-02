@@ -1,0 +1,723 @@
+{% extends "base.html" %}
+{% block title %}Barber Dashboard — Aura Studio.co{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── Barber Dashboard ── */
+.barber-dash {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 6rem 1.5rem 4rem;
+}
+
+/* Header */
+.barber-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+.barber-header-left h1 {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 2.6rem;
+    letter-spacing: 3px;
+    color: var(--gold);
+    line-height: 1;
+}
+.barber-header-left p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-top: 0.3rem;
+}
+.barber-header-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+/* Availability pill toggle */
+.avail-form {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 50px;
+    padding: 0.5rem 1.1rem;
+}
+.avail-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+.avail-label.on  { color: var(--accent-green); }
+.avail-label.off { color: var(--accent-red); }
+.toggle-switch { position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0; }
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.toggle-slider {
+    position: absolute; inset: 0;
+    background: var(--bg-input);
+    border-radius: 24px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: var(--transition);
+}
+.toggle-slider::before {
+    content: '';
+    position: absolute;
+    width: 16px; height: 16px;
+    left: 3px; top: 3px;
+    background: var(--text-muted);
+    border-radius: 50%;
+    transition: var(--transition);
+}
+.toggle-switch input:checked + .toggle-slider { background: rgba(46,204,113,0.2); border-color: var(--accent-green); }
+.toggle-switch input:checked + .toggle-slider::before { transform: translateX(20px); background: var(--accent-green); }
+
+/* Stats row */
+.barber-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+}
+.bstat {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.2rem 1rem;
+    text-align: center;
+    transition: var(--transition);
+}
+.bstat:hover { border-color: var(--gold-dark); }
+.bstat-val {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 2rem;
+    color: var(--gold);
+    letter-spacing: 1px;
+    line-height: 1;
+}
+.bstat-lbl {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 0.3rem;
+}
+
+/* Main grid */
+.dash-grid {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 1.5rem;
+    align-items: start;
+}
+@media (max-width: 900px) { .dash-grid { grid-template-columns: 1fr; } }
+
+/* Section card */
+.dash-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+.dash-card-header {
+    padding: 1rem 1.4rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+.dash-card-header h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.dash-card-body { padding: 1rem 1.4rem; }
+
+/* Appointment cards */
+.appt-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.9rem 0;
+    border-bottom: 1px solid var(--border);
+}
+.appt-row:last-child { border-bottom: none; }
+.appt-time-block {
+    flex-shrink: 0;
+    width: 52px;
+    text-align: center;
+    background: var(--bg-input);
+    border-radius: var(--radius-sm);
+    padding: 0.4rem 0.3rem;
+}
+.appt-time-block .hour {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 1.3rem;
+    color: var(--gold);
+    line-height: 1;
+}
+.appt-time-block .min {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+}
+.appt-details { flex: 1; min-width: 0; }
+.appt-details h4 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 0.2rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.appt-details .client-name {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+}
+.appt-details .pay-info {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 0.15rem;
+}
+.appt-actions {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.4rem;
+}
+.appt-price-tag {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 1.2rem;
+    color: var(--gold);
+    letter-spacing: 1px;
+}
+.status-dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    margin-right: 4px;
+}
+.status-dot.confirmed { background: var(--accent-green); }
+.status-dot.completed { background: var(--accent-blue); }
+.status-dot.cancelled { background: var(--accent-red); }
+
+/* Upcoming compact */
+.upcoming-row {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.7rem 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.85rem;
+}
+.upcoming-row:last-child { border-bottom: none; }
+.upcoming-date {
+    flex-shrink: 0;
+    background: var(--bg-input);
+    border-radius: var(--radius-sm);
+    padding: 0.3rem 0.5rem;
+    text-align: center;
+    min-width: 48px;
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    line-height: 1.3;
+}
+.upcoming-date .uday {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 1.1rem;
+    color: var(--gold);
+    display: block;
+}
+.upcoming-info { flex: 1; min-width: 0; }
+.upcoming-info strong { display: block; font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.upcoming-info span { color: var(--text-muted); font-size: 0.75rem; }
+
+/* Block time form */
+.block-form .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+    margin-bottom: 0.6rem;
+}
+.block-form .form-group label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-bottom: 0.3rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.block-form .form-group input,
+.block-form .form-group select {
+    width: 100%;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    padding: 0.5rem 0.7rem;
+    font-size: 0.85rem;
+    font-family: 'DM Sans', sans-serif;
+}
+.block-form .form-group input:focus,
+.block-form .form-group select:focus {
+    outline: none;
+    border-color: var(--gold-dark);
+}
+.block-full { grid-column: 1 / -1; }
+
+/* Active blocks */
+.block-tag {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(231,76,60,0.07);
+    border: 1px solid rgba(231,76,60,0.2);
+    border-radius: var(--radius-sm);
+    padding: 0.5rem 0.8rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.82rem;
+}
+.block-tag-info { color: var(--text-secondary); }
+.block-tag-info strong { display: block; color: var(--text-primary); }
+
+/* Chat panel */
+.chat-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    min-height: 420px;
+    max-height: 520px;
+}
+.chat-conv-list {
+    overflow-y: auto;
+    max-height: 160px;
+    border-bottom: 1px solid var(--border);
+}
+.conv-item {
+    padding: 0.7rem 1rem;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: var(--transition);
+}
+.conv-item:hover, .conv-item.active { background: rgba(201,168,76,0.07); }
+.conv-item:last-child { border-bottom: none; }
+.conv-item-top { display: flex; justify-content: space-between; align-items: center; }
+.conv-item-top strong { font-size: 0.85rem; }
+.unread-badge {
+    background: var(--accent-red);
+    color: #fff;
+    font-size: 0.65rem;
+    padding: 0.1rem 0.45rem;
+    border-radius: 10px;
+}
+.conv-item-preview {
+    font-size: 0.73rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 0.15rem;
+}
+.chat-messages-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0.8rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    min-height: 180px;
+    max-height: 240px;
+}
+.chat-input-row {
+    display: flex;
+    gap: 0.4rem;
+    padding: 0.6rem 0.8rem;
+    border-top: 1px solid var(--border);
+    display: none;
+}
+.chat-input-row input {
+    flex: 1;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    color: var(--text-primary);
+    padding: 0.5rem 0.9rem;
+    font-size: 0.85rem;
+    font-family: 'DM Sans', sans-serif;
+    outline: none;
+}
+.chat-input-row input:focus { border-color: var(--gold-dark); }
+.chat-send-btn {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--gold);
+    color: var(--bg-dark);
+    border: none;
+    font-size: 0.9rem;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+
+.empty-note {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    padding: 2rem 1rem;
+}
+
+.btn-xs {
+    padding: 0.3rem 0.75rem;
+    font-size: 0.75rem;
+    border-radius: var(--radius-sm);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="barber-dash">
+
+    <!-- ── HEADER ── -->
+    <div class="barber-header">
+        <div class="barber-header-left">
+            <h1>✂ Barber Dashboard</h1>
+            <p>{{ now.strftime('%A, %d %B %Y') }} &nbsp;·&nbsp; Aura Studio.co</p>
+        </div>
+        <div class="barber-header-right">
+            <!-- Availability toggle -->
+            <form method="POST" action="{{ url_for('toggle_availability') }}" class="avail-form">
+                <label class="toggle-switch">
+                    <input type="checkbox" {{ 'checked' if settings.is_available else '' }} onchange="this.form.submit();">
+                    <span class="toggle-slider"></span>
+                </label>
+                <span class="avail-label {{ 'on' if settings.is_available else 'off' }}">
+                    {{ 'Open for bookings' if settings.is_available else 'Closed for bookings' }}
+                </span>
+            </form>
+            <a href="{{ url_for('admin_logout') }}" class="btn btn-outline btn-sm">Logout</a>
+        </div>
+    </div>
+
+    <!-- ── STATS ── -->
+    <div class="barber-stats">
+        <div class="bstat">
+            <div class="bstat-val">{{ today_appts | length }}</div>
+            <div class="bstat-lbl">Today</div>
+        </div>
+        <div class="bstat">
+            <div class="bstat-val">{{ upcoming_appts | length }}</div>
+            <div class="bstat-lbl">Upcoming</div>
+        </div>
+        <div class="bstat">
+            <div class="bstat-val">{{ total_clients }}</div>
+            <div class="bstat-lbl">Clients</div>
+        </div>
+        <div class="bstat">
+            <div class="bstat-val">R{{ "%.0f" | format(total_revenue) }}</div>
+            <div class="bstat-lbl">Revenue</div>
+        </div>
+        <div class="bstat">
+            <div class="bstat-val">{{ avg_rating }}</div>
+            <div class="bstat-lbl">Avg Rating</div>
+        </div>
+    </div>
+
+    <!-- ── MAIN GRID ── -->
+    <div class="dash-grid">
+
+        <!-- LEFT COLUMN -->
+        <div style="display:flex;flex-direction:column;gap:1.5rem;">
+
+            <!-- TODAY'S SCHEDULE -->
+            <div class="dash-card">
+                <div class="dash-card-header">
+                    <h3>📅 Today's Schedule</h3>
+                    <span style="font-size:0.8rem;color:var(--text-muted);">{{ now.strftime('%d %b') }}</span>
+                </div>
+                <div class="dash-card-body">
+                    {% if today_appts %}
+                    {% for appt in today_appts %}
+                    <div class="appt-row">
+                        <div class="appt-time-block">
+                            <div class="hour">{{ appt.appointment_time.strftime('%H') }}</div>
+                            <div class="min">{{ appt.appointment_time.strftime('%M') }}</div>
+                        </div>
+                        <div class="appt-details">
+                            <h4>{{ appt.hairstyle_name }}</h4>
+                            <div class="client-name">
+                                👤 {{ appt.user.first_name }} {{ appt.user.last_name }}
+                                {% if appt.user.phone %}&nbsp;·&nbsp; {{ appt.user.phone }}{% endif %}
+                            </div>
+                            <div class="pay-info">
+                                {{ appt.payment_method | upper }}
+                                {% if appt.payment_provider %}({{ appt.payment_provider }}){% endif %}
+                                &nbsp;·&nbsp;
+                                <span style="color:{% if appt.payment_status == 'paid' %}var(--accent-green){% elif appt.payment_status == 'pending' %}var(--gold){% else %}var(--accent-red){% endif %};">
+                                    {{ appt.payment_status | capitalize }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="appt-actions">
+                            <div class="appt-price-tag">R{{ "%.0f" | format(appt.price) }}</div>
+                            <span style="font-size:0.72rem;color:var(--text-muted);">
+                                <span class="status-dot {{ appt.status }}"></span>{{ appt.status }}
+                            </span>
+                            {% if appt.status == 'confirmed' %}
+                            <form method="POST" action="{{ url_for('complete_appointment', appt_id=appt.id) }}" style="margin:0;">
+                                <button type="submit" class="btn btn-gold btn-xs">Done ✓</button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <div class="empty-note">No appointments today. Enjoy the downtime ✂</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- UPCOMING APPOINTMENTS -->
+            <div class="dash-card">
+                <div class="dash-card-header">
+                    <h3>🗓 Upcoming Appointments</h3>
+                    <span style="font-size:0.8rem;color:var(--text-muted);">Next {{ upcoming_appts | length }}</span>
+                </div>
+                <div class="dash-card-body">
+                    {% if upcoming_appts %}
+                    {% for appt in upcoming_appts %}
+                    <div class="upcoming-row">
+                        <div class="upcoming-date">
+                            <span class="uday">{{ appt.appointment_date.strftime('%d') }}</span>
+                            {{ appt.appointment_date.strftime('%b') }}
+                        </div>
+                        <div class="upcoming-info">
+                            <strong>{{ appt.hairstyle_name }}</strong>
+                            <span>{{ appt.user.first_name }} {{ appt.user.last_name }}
+                                &nbsp;·&nbsp; {{ appt.appointment_time.strftime('%H:%M') }}
+                                &nbsp;·&nbsp; R{{ "%.0f" | format(appt.price) }}
+                            </span>
+                        </div>
+                        <span style="font-size:0.72rem;color:var(--text-muted);flex-shrink:0;">
+                            <span class="status-dot confirmed"></span>confirmed
+                        </span>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <div class="empty-note">No upcoming appointments.</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- LIVE CHAT -->
+            <div class="dash-card">
+                <div class="dash-card-header">
+                    <h3>💬 Client Enquiries
+                        <span id="admin-chat-total-badge" style="display:none;background:var(--accent-red);color:#fff;font-size:0.65rem;padding:0.1rem 0.5rem;border-radius:10px;margin-left:0.4rem;"></span>
+                    </h3>
+                </div>
+                <div class="chat-layout">
+                    <div class="chat-conv-list" id="admin-conv-list">
+                        <p class="empty-note" id="admin-conv-empty">No conversations yet.</p>
+                    </div>
+                    <div id="admin-chat-header-bar" style="padding:0.6rem 1rem;border-bottom:1px solid var(--border);font-size:0.85rem;font-weight:600;color:var(--text-muted);">
+                        Select a conversation
+                    </div>
+                    <div class="chat-messages-area" id="admin-chat-messages"></div>
+                    <div class="chat-input-row" id="admin-chat-input-area">
+                        <input type="text" id="admin-chat-input" placeholder="Reply to client..."
+                               onkeydown="if(event.key==='Enter')adminSendMessage();">
+                        <button class="chat-send-btn" onclick="adminSendMessage()">➤</button>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- /LEFT COLUMN -->
+
+        <!-- RIGHT COLUMN -->
+        <div style="display:flex;flex-direction:column;gap:1.5rem;">
+
+            <!-- BLOCK TIME -->
+            <div class="dash-card">
+                <div class="dash-card-header">
+                    <h3>🚫 Block Time</h3>
+                </div>
+                <div class="dash-card-body">
+                    <form method="POST" action="{{ url_for('block_time') }}" class="block-form">
+                        <div class="form-row">
+                            <div class="form-group block-full">
+                                <label>Date</label>
+                                <input type="date" name="block_date" required min="{{ now.strftime('%Y-%m-%d') }}">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>From</label>
+                                <select name="start_time" required>
+                                    <option value="08:00">08:00</option>
+                                    <option value="08:45">08:45</option>
+                                    <option value="09:30">09:30</option>
+                                    <option value="10:15">10:15</option>
+                                    <option value="11:00">11:00</option>
+                                    <option value="11:45">11:45</option>
+                                    <option value="12:30">12:30</option>
+                                    <option value="13:15">13:15</option>
+                                    <option value="14:00">14:00</option>
+                                    <option value="14:45">14:45</option>
+                                    <option value="15:30">15:30</option>
+                                    <option value="16:15">16:15</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>To</label>
+                                <select name="end_time" required>
+                                    <option value="08:45">08:45</option>
+                                    <option value="09:30">09:30</option>
+                                    <option value="10:15">10:15</option>
+                                    <option value="11:00">11:00</option>
+                                    <option value="11:45">11:45</option>
+                                    <option value="12:30">12:30</option>
+                                    <option value="13:15">13:15</option>
+                                    <option value="14:00">14:00</option>
+                                    <option value="14:45">14:45</option>
+                                    <option value="15:30">15:30</option>
+                                    <option value="16:15">16:15</option>
+                                    <option value="17:00" selected>17:00</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group block-full">
+                                <label>Reason (optional)</label>
+                                <input type="text" name="reason" placeholder="e.g. Personal errand">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-outline" style="width:100%;margin-top:0.3rem;">🚫 Block This Time</button>
+                    </form>
+
+                    {% if blocked_slots %}
+                    <div style="margin-top:1rem;">
+                        <p style="font-size:0.75rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:0.6rem;">Active Blocks</p>
+                        {% for block in blocked_slots %}
+                        <div class="block-tag">
+                            <div class="block-tag-info">
+                                <strong>{{ block.block_date.strftime('%d %b') }} · {{ block.start_time.strftime('%H:%M') }}–{{ block.end_time.strftime('%H:%M') }}</strong>
+                                {% if block.reason %}{{ block.reason }}{% endif %}
+                            </div>
+                            <form method="POST" action="{{ url_for('unblock_time', block_id=block.id) }}" style="margin:0;">
+                                <button type="submit" class="btn btn-danger btn-xs">✕</button>
+                            </form>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div><!-- /RIGHT COLUMN -->
+
+    </div><!-- /GRID -->
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let activeUserId = null;
+
+function esc(text) {
+    const d = document.createElement("div");
+    d.textContent = text;
+    return d.innerHTML;
+}
+
+async function loadConversations() {
+    try {
+        const res = await fetch("/admin/api/chat/conversations");
+        const data = await res.json();
+        const list = document.getElementById("admin-conv-list");
+        const empty = document.getElementById("admin-conv-empty");
+
+        if (data.conversations.length === 0) {
+            empty.style.display = "block";
+            return;
+        }
+        empty.style.display = "none";
+        list.innerHTML = "";
+
+        data.conversations.forEach(c => {
+            const div = document.createElement("div");
+            div.className = "conv-item" + (activeUserId === c.user_id ? " active" : "");
+            div.onclick = () => openConversation(c.user_id, c.name);
+            div.innerHTML = `
+                <div class="conv-item-top">
+                    <strong>${esc(c.name)}</strong>
+                    ${c.unread > 0 ? `<span class="unread-badge">${c.unread}</span>` : ''}
+                </div>
+                <div class="conv-item-preview">${esc(c.last_message)}</div>
+            `;
+            list.appendChild(div);
+        });
+
+        const total = data.conversations.reduce((s, c) => s + c.unread, 0);
+        const badge = document.getElementById("admin-chat-total-badge");
+        if (total > 0) { badge.textContent = total + " new"; badge.style.display = "inline"; }
+        else { badge.style.display = "none"; }
+    } catch(e) { console.error(e); }
+}
+
+async function openConversation(userId, name) {
+    activeUserId = userId;
+    document.getElementById("admin-chat-header-bar").textContent = "💬 " + name;
+    document.getElementById("admin-chat-header-bar").style.color = "var(--text-primary)";
+    document.getElementById("admin-chat-input-area").style.display = "flex";
+    await loadAdminMessages(userId);
+    loadConversations();
+}
+
+async function loadAdminMessages(userId) {
+    try {
+        const res = await fetch(`/admin/api/chat/messages/${userId}`);
+        const data = await res.json();
+        const container = document.getElementById("admin-chat-messages");
+        container.innerHTML = "";
+        data.messages.forEach(m => {
+            const div = document.createElement("div");
+            const isAdmin = m.sender === "admin";
+            div.style.cssText = `max-width:85%;padding:0.5rem 0.8rem;border-radius:10px;font-size:0.83rem;line-height:1.4;word-wrap:break-word;align-self:${isAdmin?"flex-end":"flex-start"};background:${isAdmin?"var(--gold)":"var(--bg-input)"};color:${isAdmin?"var(--bg-dark)":"var(--text-primary)"};`;
+            div.innerHTML = `${esc(m.message)}<div style="font-size:0.62rem;opacity:0.6;margin-top:0.15rem;">${isAdmin?"You ✂":"👤 Client"} · ${m.time}</div>`;
+            container.appendChild(div);
+        });
+        container.scrollTop = container.scrollHeight;
+    } catch(e) { console.error(e); }
+}
+
+async function adminSendMessage() {
+    if (!activeUserId) return;
+    const input = document.getElementById("admin-chat-input");
+    const text = input.value.trim();
+    if (!text) return;
+    input.value = "";
+    try {
+        await fetch("/admin/api/chat/send", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({user_id: activeUserId, message: text}),
+        });
+        loadAdminMessages(activeUserId);
+    } catch(e) { console.error(e); }
+}
+
+loadConversations();
+setInterval(() => {
+    loadConversations();
+    if (activeUserId) loadAdminMessages(activeUserId);
+}, 5000);
+</script>
+{% endblock %}

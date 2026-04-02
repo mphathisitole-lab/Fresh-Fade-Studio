@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Contact — Aura Studio.co{% endblock %}
+
+{% block content %}
+<div class="form-page" style="align-items:flex-start;">
+    <div class="form-container" style="max-width:600px;">
+        <h2>Contact Us</h2>
+        <p class="form-subtitle">Got questions? We'd love to hear from you.</p>
+
+        <div style="display:flex;flex-direction:column;gap:1.5rem;margin-top:1.5rem;">
+            <!-- Phone -->
+            <div style="background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius-sm);padding:1.5rem;display:flex;align-items:center;gap:1rem;">
+                <div style="font-size:2rem;">📞</div>
+                <div>
+                    <div style="font-size:0.75rem;text-transform:uppercase;letter-spacing:1px;color:var(--gold);margin-bottom:0.2rem;">Phone / WhatsApp</div>
+                    <a href="tel:+27799097678" style="font-size:1.1rem;font-weight:600;color:var(--text-primary);">
+                        {{ contact_phone }}
+                    </a>
+                </div>
+            </div>
+
+            <!-- Email -->
+            <div style="background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius-sm);padding:1.5rem;display:flex;align-items:center;gap:1rem;">
+                <div style="font-size:2rem;">✉️</div>
+                <div>
+                    <div style="font-size:0.75rem;text-transform:uppercase;letter-spacing:1px;color:var(--gold);margin-bottom:0.2rem;">Email</div>
+                    <a href="mailto:{{ contact_email }}" style="font-size:1.1rem;font-weight:600;color:var(--text-primary);">
+                        {{ contact_email }}
+                    </a>
+                </div>
+            </div>
+
+            <!-- Location -->
+            <div style="background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius-sm);padding:1.5rem;display:flex;align-items:center;gap:1rem;">
+                <div style="font-size:2rem;">📍</div>
+                <div>
+                    <div style="font-size:0.75rem;text-transform:uppercase;letter-spacing:1px;color:var(--gold);margin-bottom:0.2rem;">Location</div>
+                    <p style="font-size:1.1rem;font-weight:600;color:var(--text-primary);">Durban, KwaZulu-Natal</p>
+                </div>
+            </div>
+
+            <!-- Hours -->
+            <div style="background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius-sm);padding:1.5rem;display:flex;align-items:center;gap:1rem;">
+                <div style="font-size:2rem;">🕐</div>
+                <div>
+                    <div style="font-size:0.75rem;text-transform:uppercase;letter-spacing:1px;color:var(--gold);margin-bottom:0.2rem;">Working Hours</div>
+                    <p style="font-size:1rem;color:var(--text-primary);">Mon – Sat: 08:00 – 17:00</p>
+                    <p style="font-size:0.85rem;color:var(--text-muted);">Closed on Sundays</p>
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align:center;margin-top:2rem;">
+            <a href="{{ url_for('services') }}" class="btn btn-gold">View Our Services</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
